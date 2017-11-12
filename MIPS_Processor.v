@@ -102,7 +102,7 @@ integer ALUStatus;
 Control
 ControlUnit
 (
-	.OP(Instruction_wire[31:26]),
+	.OP(IFID_Instruction_wire[31:26]),
 	.RegDst(RegDst_wire),
 	.BranchNE(BranchNE_wire),
 	.BranchEQ(BranchEQ_wire),
@@ -124,18 +124,6 @@ ProgramCounter(
 	.NewPC(PC_result_wire),
 	.PCValue(PC_wire)
 );
-
-PIPE_Register(
-	.N(64)
-)
-IFID
-(
-	.clk(clk),
-	.reset(reset),
-	.enable(1'b1),
-	.DataInput({PC_4_wire,Instruction_wire}),
-	.DataOutput({IFID_PC_4_wire,IFID_Instruction_wire})//sustituir pc+4 y instruction wire en donde sea
-)
 
 ProgramMemory
 #(
@@ -161,7 +149,7 @@ PC_Puls_4
 Adder32bits
 Address_plus_PC
 (
-	.Data0(PC_4_wire),
+	.Data0(IFID_PC_4_wire),
 	.Data1({{14{Instruction_wire[15]}},Instruction_wire[15:0],2'b00}),
 	.Result(BranchPC_wire)
 );
@@ -189,6 +177,20 @@ PC_mux(
 	.MUX_Output(PC_result_wire)
 );
 //******************************************************************/
+//******************************************++++++PIPELINE
+PIPE_Register
+#(
+	.N(64)
+)
+IFID
+(
+	.clk(clk),
+	.reset(reset),
+	.enable(1'b1),
+	.DataInput({PC_4_wire,Instruction_wire}),
+	.DataOutput({IFID_PC_4_wire,IFID_Instruction_wire})//sustituir pc+4 y instruction wire en donde sea
+);
+//******************************************++++++PIPELINE
 //******************************************************************/
 Multiplexer2to1
 #(
@@ -197,7 +199,7 @@ Multiplexer2to1
 JALMux_data(
 	.Selector(jal_wire),
 	.MUX_Data0(RAM_or_LUI_wire),
-	.MUX_Data1(PC_4_wire),
+	.MUX_Data1(IFID_PC_4_wire),
 	.MUX_Output(Write2Register_wire)
 );
 //*****************************MUX to write PC+4 to Register
@@ -213,6 +215,7 @@ JALMux(
 );
 //*****************************MUX to choose register 31
 //******************************************************************/
+
 Multiplexer2to1
 #(
 	.NBits(5)
@@ -220,8 +223,8 @@ Multiplexer2to1
 MUX_ForRTypeAndIType
 (
 	.Selector(RegDst_wire),
-	.MUX_Data0(Instruction_wire[20:16]),
-	.MUX_Data1(Instruction_wire[15:11]),
+	.MUX_Data0(IFID_Instruction_wire[20:16]),
+	.MUX_Data1(IFID_Instruction_wire[15:11]),
 	.MUX_Output(WriteRegister_wire)
 );
 
@@ -232,8 +235,8 @@ Register_File
 	.reset(reset),
 	.RegWrite(RegWrite_wire),
 	.WriteRegister(AddressRegister_wire),
-	.ReadRegister1(Instruction_wire[25:21]),//Rs
-	.ReadRegister2(Instruction_wire[20:16]),//RT
+	.ReadRegister1(IFID_Instruction_wire[25:21]),//Rs
+	.ReadRegister2(IFID_Instruction_wire[20:16]),//RT
 	.WriteData(Write2Register_wire),
 	.ReadData1(ReadData1_wire),//RS
 	.ReadData2(ReadData2_wire)//RT
@@ -242,10 +245,23 @@ Register_File
 SignExtend
 SignExtendForConstants
 (   
-	.DataInput(Instruction_wire[15:0]),
+	.DataInput(IFID_Instruction_wire[15:0]),
    .SignExtendOutput(InmmediateExtend_wire)
 );
-
+//******************************************++++++PIPELINE
+PIPE_Register
+#(
+	.N(64)
+)
+IDEX
+(
+	.clk(clk),
+	.reset(reset),
+	.enable(1'b1),
+	.DataInput({PC_4_wire,Instruction_wire}),
+	.DataOutput({IFID_PC_4_wire,IFID_Instruction_wire})//sustituir pc+4 y instruction wire en donde sea
+);
+//******************************************++++++PIPELINE
 
 Multiplexer2to1
 #(
@@ -264,7 +280,7 @@ ALUControl
 ArithmeticLogicUnitControl
 (
 	.ALUOp(ALUOp_wire),
-	.ALUFunction(Instruction_wire[5:0]),
+	.ALUFunction(IFID_Instruction_wire[5:0]),
 	.ALUOperation(ALUOperation_wire),
 	.jr(jr_wire)
 );
@@ -276,7 +292,7 @@ ArithmeticLogicUnit
 	.A(ReadData1_wire),
 	.B(ReadData2OrInmmediate_wire),
 	.Zero(Zero_wire),
-	.shamt(Instruction_wire[10:6]),
+	.shamt(IFID_Instruction_wire[10:6]),
 	.ALUResult(ALUResult_wire)
 );
 //********************************************LUI CONTROL
@@ -292,7 +308,7 @@ luiMux(
 );
 
 luiModule lui(
-	.DataInput(Instruction_wire[15:0]),
+	.DataInput(IFID_Instruction_wire[15:0]),
    .ExtendedOutput(LuiWire)
 );
 
