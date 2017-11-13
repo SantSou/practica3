@@ -110,6 +110,16 @@ wire IDEX_MemRead_wire;
 wire IDEX_MemtoReg_wire;
 wire IDEX_MemWrite_wire;
 wire IDEX_RegWrite_wire;
+
+//EXMEM
+wire [31:0] EXMEM_BranchPC_wire;
+wire [31:0] EXMEM_ALUResult_wire;
+wire [31:0] EXMEM_ReadData2;
+wire [4:0] EXMEM_WriteRegister_wir;
+wire EXMEM_MemRead_wire;
+wire EXMEM_MemtoReg_wire;
+wire EXMEM_MemWrite_wire;
+wire EXMEM_RegWrite_wire;
 //*********************************
 integer ALUStatus;
 
@@ -186,7 +196,7 @@ Multiplexer4to1
 PC_mux(
 	.Selector({jump_or_jr_wire,branch_or_jr_wire}),
 	.MUX_Data0(PC_4_wire),
-	.MUX_Data1(BranchPC_wire),
+	.MUX_Data1(EXMEM_BranchPC_wire), //pipemod
 	.MUX_Data2({PC_4_wire[31:28],Instruction_wire[25:0],2'b00}), //jumpaddr
 	.MUX_Data3(ReadData1_wire),//Rs	pipemod
 	.MUX_Output(PC_result_wire)
@@ -222,6 +232,39 @@ IDEX
 
 );
 //******************************************++++++PIPELINE
+
+//******************************************++++++PIPELINE
+PIPE_Register
+#(
+	.N(105)
+)
+EXMEM
+(
+	.clk(clk),
+	.reset(reset),
+	.enable(1'b1),
+	.DataInput({BranchPC_wire,ALUResult_wire,IDEX_ReadData2,WriteRegister_wire,IDEX_MemRead_wire,IDEX_MemtoReg_wire,IDEX_MemWrite_wire,IDEX_RegWrite_wire}),
+	.DataOutput({EXMEM_BranchPC_wire,EXMEM_ALUResult_wire,EXMEM_ReadData2,EXMEM_WriteRegister_wire,EXMEM_MemRead_wire,EXMEM_MemtoReg_wire,EXMEM_MemWrite_wire,EXMEM_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
+
+);
+//******************************************++++++PIPELINE
+
+//******************************************++++++PIPELINE
+PIPE_Register
+#(
+	.N(105)
+)
+EXMEM
+(
+	.clk(clk),
+	.reset(reset),
+	.enable(1'b1),
+	.DataInput({BranchPC_wire,ALUResult_wire,IDEX_ReadData2,WriteRegister_wire,IDEX_MemRead_wire,IDEX_MemtoReg_wire,IDEX_MemWrite_wire,IDEX_RegWrite_wire}),
+	.DataOutput({EXMEM_BranchPC_wire,EXMEM_ALUResult_wire,EXMEM_ReadData2,EXMEM_WriteRegister_wire,EXMEM_MemRead_wire,EXMEM_MemtoReg_wire,EXMEM_MemWrite_wire,EXMEM_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
+
+);
+//******************************************++++++PIPELINE
+
 //******************************************************************/
 Multiplexer2to1
 #(
@@ -339,10 +382,10 @@ DataMemory
 	.MEMORY_DEPTH(MEMORY_DEPTH)
 )
 RAM(
-	.WriteData(ReadData2_wire), //pipemod
-	.Address({24'b0,ALUResult_wire[10:2]}),
-	.MemWrite(MemWrite_wire),
-	.MemRead(MemRead_wire), 
+	.WriteData(EXMEM_ReadData2), //pipemod
+	.Address({24'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
+	.MemWrite(EXMEM_MemWrite_wire),
+	.MemRead(EXMEM_MemRead_wire), 
 	.clk(clk),
 	.ReadData(RAM_OUT_wire)
 );
