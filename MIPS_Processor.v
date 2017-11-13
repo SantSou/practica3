@@ -104,8 +104,8 @@ wire [31:0] IDEX_ReadData2;
 
 wire [31:0] IDEX_InmmediateExtend_wire;
 wire [9:0] IDEX_Rd_Rt;
+wire [2:0]IDEX_ALUOp_wire;
 wire IDEX_RegDst_wire;
-wire IDEX_ALUOp_wire;
 wire IDEX_ALUSrc_wire;
 wire IDEX_MemRead_wire;
 wire IDEX_MemtoReg_wire;
@@ -231,15 +231,15 @@ IFID
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(145)
+	.N(147)
 )
 IDEX
 (
 	.clk(clk),
 	.reset(reset),
 	.enable(1'b1),
-	.DataInput({IFID_Instruction_wire,IFID_PC_4_wire,ReadData1_wire,ReadData2_wire,InmmediateExtend_wire,IFID_Instruction_wire[20:11],RegDst_wire,ALUOp_wire,ALUSrc_wire,MemRead_wire,MemtoReg_wire,MemWrite_wire,RegWrite_wire}),
-	.DataOutput({IDEX_Instruction_wire,IDEX_PC_4_wire,IDEX_ReadData1,IDEX_ReadData2,IDEX_InmmediateExtend_wire,IDEX_Rd_Rt,IDEX_RegDst_wire,IDEX_ALUOp_wire,IDEX_ALUSrc_wire,IDEX_MemRead_wire,IDEX_MemtoReg_wire,IDEX_MemWrite_wire,IDEX_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
+	.DataInput({IFID_Instruction_wire,IFID_PC_4_wire,ReadData1_wire,ReadData2_wire,InmmediateExtend_wire,RegDst_wire,ALUOp_wire,ALUSrc_wire,MemRead_wire,MemtoReg_wire,MemWrite_wire,RegWrite_wire}),
+	.DataOutput({IDEX_Instruction_wire,IDEX_PC_4_wire,IDEX_ReadData1,IDEX_ReadData2,IDEX_InmmediateExtend_wire,IDEX_RegDst_wire,IDEX_ALUOp_wire,IDEX_ALUSrc_wire,IDEX_MemRead_wire,IDEX_MemtoReg_wire,IDEX_MemWrite_wire,IDEX_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
 
 );
 //******************************************++++++PIPELINE
@@ -307,8 +307,8 @@ Multiplexer2to1
 MUX_ForRTypeAndIType
 (
 	.Selector(IDEX_RegDst_wire),
-	.MUX_Data0(IFID_Instruction_wire[20:16]),
-	.MUX_Data1(IFID_Instruction_wire[15:11]),
+	.MUX_Data0(IDEX_Instruction_wire[20:16]),
+	.MUX_Data1(IDEX_Instruction_wire[15:11]),
 	.MUX_Output(MEMWB_WriteRegister_wire)
 );
 
@@ -351,7 +351,7 @@ ALUControl
 ArithmeticLogicUnitControl
 (
 	.ALUOp(IDEX_ALUOp_wire),
-	.ALUFunction(IFID_Instruction_wire[5:0]),
+	.ALUFunction(IDEX_Instruction_wire[5:0]),
 	.ALUOperation(ALUOperation_wire),
 	.jr(jr_wire)
 );
@@ -363,7 +363,7 @@ ArithmeticLogicUnit
 	.A(IDEX_ReadData1_wire),//pipemod
 	.B(ReadData2OrInmmediate_wire),
 	.Zero(Zero_wire),
-	.shamt(IFID_Instruction_wire[10:6]),
+	.shamt(IDEX_Instruction_wire[10:6]),
 	.ALUResult(ALUResult_wire)
 );
 //********************************************LUI CONTROL
