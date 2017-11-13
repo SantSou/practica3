@@ -113,13 +113,20 @@ wire IDEX_RegWrite_wire;
 
 //EXMEM
 wire [31:0] EXMEM_BranchPC_wire;
-wire [31:0] EXMEM_ALUResult_wire;
+wire [31:0] EXMEM_ALU_or_LUI_wire;
 wire [31:0] EXMEM_ReadData2;
-wire [4:0] EXMEM_WriteRegister_wir;
+wire [4:0] EXMEM_WriteRegister_wire;
 wire EXMEM_MemRead_wire;
 wire EXMEM_MemtoReg_wire;
 wire EXMEM_MemWrite_wire;
 wire EXMEM_RegWrite_wire;
+
+//MEMWB
+wire [31:0] MEMWB_ALU_or_LUI_wire;
+wire [31:0] MEMWB_RAM_OUT_wire;
+wire [4:0] MEMWB_WriteRegister_wire;
+wire MEMWB_MemtoReg_wire;
+wire MEMWB_RegWrite_wire;
 //*********************************
 integer ALUStatus;
 
@@ -243,8 +250,8 @@ EXMEM
 	.clk(clk),
 	.reset(reset),
 	.enable(1'b1),
-	.DataInput({BranchPC_wire,ALUResult_wire,IDEX_ReadData2,WriteRegister_wire,IDEX_MemRead_wire,IDEX_MemtoReg_wire,IDEX_MemWrite_wire,IDEX_RegWrite_wire}),
-	.DataOutput({EXMEM_BranchPC_wire,EXMEM_ALUResult_wire,EXMEM_ReadData2,EXMEM_WriteRegister_wire,EXMEM_MemRead_wire,EXMEM_MemtoReg_wire,EXMEM_MemWrite_wire,EXMEM_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
+	.DataInput({BranchPC_wire,ALU_or_LUI_wire,IDEX_ReadData2,WriteRegister_wire,IDEX_MemRead_wire,IDEX_MemtoReg_wire,IDEX_MemWrite_wire,IDEX_RegWrite_wire}),
+	.DataOutput({EXMEM_BranchPC_wire,EXMEM_ALU_or_LUI_wire,EXMEM_ReadData2,EXMEM_WriteRegister_wire,EXMEM_MemRead_wire,EXMEM_MemtoReg_wire,EXMEM_MemWrite_wire,EXMEM_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
 
 );
 //******************************************++++++PIPELINE
@@ -252,16 +259,15 @@ EXMEM
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(105)
+	.N(71)
 )
-EXMEM
+MEMWB
 (
 	.clk(clk),
 	.reset(reset),
 	.enable(1'b1),
-	.DataInput({BranchPC_wire,ALUResult_wire,IDEX_ReadData2,WriteRegister_wire,IDEX_MemRead_wire,IDEX_MemtoReg_wire,IDEX_MemWrite_wire,IDEX_RegWrite_wire}),
-	.DataOutput({EXMEM_BranchPC_wire,EXMEM_ALUResult_wire,EXMEM_ReadData2,EXMEM_WriteRegister_wire,EXMEM_MemRead_wire,EXMEM_MemtoReg_wire,EXMEM_MemWrite_wire,EXMEM_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
-
+	.DataInput({RAM_OUT_wire,EXMEM_ALU_or_LUI_wire,EXMEM_WriteRegister_wire,EXMEM_MemtoReg_wire,EXMEM_RegWrite_wire}),
+	.DataOutput({MEMWB_RAM_OUT_wire,MEMWB_ALU_or_LUI_wire,MEMWB_WriteRegister_wire,MEMWB_MemtoReg_wire,MEMWB_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
 );
 //******************************************++++++PIPELINE
 
@@ -307,7 +313,7 @@ Register_File
 (
 	.clk(clk),
 	.reset(reset),
-	.RegWrite(RegWrite_wire),
+	.RegWrite(MEMWB_RegWrite_wire),
 	.WriteRegister(AddressRegister_wire),
 	.ReadRegister1(IFID_Instruction_wire[25:21]),//Rs
 	.ReadRegister2(IFID_Instruction_wire[20:16]),//RT
@@ -383,7 +389,7 @@ DataMemory
 )
 RAM(
 	.WriteData(EXMEM_ReadData2), //pipemod
-	.Address({24'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
+	.Address({24'b0,EXMEM_ALU_or_LUI_wire[10:2]}), //pipemod
 	.MemWrite(EXMEM_MemWrite_wire),
 	.MemRead(EXMEM_MemRead_wire), 
 	.clk(clk),
@@ -396,9 +402,9 @@ Multiplexer2to1
 	.NBits(32)
 )
 RAM_Mux(
-	.Selector(MemtoReg_wire),
-	.MUX_Data0(ALU_or_LUI_wire),
-	.MUX_Data1(RAM_OUT_wire),
+	.Selector(MEMWB_MemtoReg_wire),
+	.MUX_Data0(MEMWB_ALU_or_LUI_wire),
+	.MUX_Data1(MEMWB_RAM_OUT_wire),
 	.MUX_Output(RAM_or_LUI_wire)
 );
 //*******************RAM MUX
