@@ -95,6 +95,21 @@ wire [31:0] PC_result_wire;
 //DECODE STAGE
 wire [31:0] IFID_PC_4_wire;
 wire [31:0] IFID_Instruction_wire;
+
+//IDEX
+wire [31:0] IDEX_PC_4_wire;
+wire [31:0] IDEX_ReadData1;
+wire [31:0] IDEX_ReadData2;
+
+wire [31:0] IDEX_InmmediateExtend_wire;
+wire [9:0] IDEX_Rd_Rt;
+wire IDEX_RegDst_wire;
+wire IDEX_ALUOp_wire;
+wire IDEX_ALUSrc_wire;
+wire IDEX_MemRead_wire;
+wire IDEX_MemtoReg_wire;
+wire IDEX_MemWrite_wire;
+wire IDEX_RegWrite_wire;
 //*********************************
 integer ALUStatus;
 
@@ -103,18 +118,18 @@ Control
 ControlUnit
 (
 	.OP(IFID_Instruction_wire[31:26]),
-	.RegDst(RegDst_wire),
+	.RegDst(RegDst_wire),//
 	.BranchNE(BranchNE_wire),
 	.BranchEQ(BranchEQ_wire),
-	.ALUOp(ALUOp_wire),
-	.ALUSrc(ALUSrc_wire),
+	.ALUOp(ALUOp_wire),//
+	.ALUSrc(ALUSrc_wire),//
 	.lui(Lui_selec),
 	.jump(jump_wire),
 	.jal(jal_wire),
-	.MemRead(MemRead_wire),
-	.MemtoReg(MemtoReg_wire),
-	.MemWrite(MemWrite_wire),
-	.RegWrite(RegWrite_wire)
+	.MemRead(MemRead_wire),//
+	.MemtoReg(MemtoReg_wire),//
+	.MemWrite(MemWrite_wire),//
+	.RegWrite(RegWrite_wire)//
 );
 
 PC_Register
@@ -157,8 +172,8 @@ Address_plus_PC
 Brancher
 branch_control
 (
-	.Rt(ReadData1_wire),//Rs
-	.Rs(ReadData2_wire),//Rt
+	.Rt(ReadData1_wire),//Rs pipemod
+	.Rs(ReadData2_wire),//Rt pipemod
 	.BEQ(BranchEQ_wire),
 	.BNE(BranchNE_wire),
 	.branch(branch_output)
@@ -173,7 +188,7 @@ PC_mux(
 	.MUX_Data0(PC_4_wire),
 	.MUX_Data1(BranchPC_wire),
 	.MUX_Data2({PC_4_wire[31:28],Instruction_wire[25:0],2'b00}), //jumpaddr
-	.MUX_Data3(ReadData1_wire),//Rs	
+	.MUX_Data3(ReadData1_wire),//Rs	pipemod
 	.MUX_Output(PC_result_wire)
 );
 //******************************************************************/
@@ -189,6 +204,22 @@ IFID
 	.enable(1'b1),
 	.DataInput({PC_4_wire,Instruction_wire}),
 	.DataOutput({IFID_PC_4_wire,IFID_Instruction_wire})//sustituir pc+4 y instruction wire en donde sea
+);
+//******************************************++++++PIPELINE
+
+//******************************************++++++PIPELINE
+PIPE_Register
+#(
+	.N(145)
+)
+IDEX
+(
+	.clk(clk),
+	.reset(reset),
+	.enable(1'b1),
+	.DataInput({IFID_PC_4_wire,ReadData1_wire,ReadData2_wire,InmmediateExtend_wire,IFID_Instruction_wire[20:11],RegDst_wire,ALUOp_wire,ALUSrc_wire,MemRead_wire,MemtoReg_wire,MemWrite_wire,RegWrite_wire}),
+	.DataOutput({IDEX_PC_4_wire,IDEX_ReadData1,IDEX_ReadData2,IDEX_InmmediateExtend_wire,IDEX_Rd_Rt,IDEX_RegDst_wire,IDEX_ALUOp_wire,IDEX_ALUSrc_wire,IDEX_MemRead_wire,IDEX_MemtoReg_wire,IDEX_MemWrite_wire,IDEX_RegWrite_wire})//sustituir pc+4 y instruction wire en donde sea
+
 );
 //******************************************++++++PIPELINE
 //******************************************************************/
@@ -222,7 +253,7 @@ Multiplexer2to1
 )
 MUX_ForRTypeAndIType
 (
-	.Selector(RegDst_wire),
+	.Selector(IDEX_RegDst_wire),
 	.MUX_Data0(IFID_Instruction_wire[20:16]),
 	.MUX_Data1(IFID_Instruction_wire[15:11]),
 	.MUX_Output(WriteRegister_wire)
@@ -248,20 +279,7 @@ SignExtendForConstants
 	.DataInput(IFID_Instruction_wire[15:0]),
    .SignExtendOutput(InmmediateExtend_wire)
 );
-//******************************************++++++PIPELINE
-PIPE_Register
-#(
-	.N(64)
-)
-IDEX
-(
-	.clk(clk),
-	.reset(reset),
-	.enable(1'b1),
-	.DataInput({PC_4_wire,Instruction_wire}),
-	.DataOutput({IFID_PC_4_wire,IFID_Instruction_wire})//sustituir pc+4 y instruction wire en donde sea
-);
-//******************************************++++++PIPELINE
+
 
 Multiplexer2to1
 #(
@@ -269,9 +287,9 @@ Multiplexer2to1
 )
 MUX_ForReadDataAndInmediate
 (
-	.Selector(ALUSrc_wire),
-	.MUX_Data0(ReadData2_wire),
-	.MUX_Data1(InmmediateExtend_wire),
+	.Selector(IDEX_ALUSrc_wire),
+	.MUX_Data0(ReadData2_wire), //pipemod
+	.MUX_Data1(InmmediateExtend_wire),//pipemod
 	.MUX_Output(ReadData2OrInmmediate_wire)
 );
 
@@ -279,7 +297,7 @@ MUX_ForReadDataAndInmediate
 ALUControl
 ArithmeticLogicUnitControl
 (
-	.ALUOp(ALUOp_wire),
+	.ALUOp(IDEX_ALUOp_wire),
 	.ALUFunction(IFID_Instruction_wire[5:0]),
 	.ALUOperation(ALUOperation_wire),
 	.jr(jr_wire)
@@ -289,7 +307,7 @@ ALU
 ArithmeticLogicUnit 
 (
 	.ALUOperation(ALUOperation_wire),
-	.A(ReadData1_wire),
+	.A(ReadData1_wire),//pipemod
 	.B(ReadData2OrInmmediate_wire),
 	.Zero(Zero_wire),
 	.shamt(IFID_Instruction_wire[10:6]),
@@ -321,7 +339,7 @@ DataMemory
 	.MEMORY_DEPTH(MEMORY_DEPTH)
 )
 RAM(
-	.WriteData(ReadData2_wire),
+	.WriteData(ReadData2_wire), //pipemod
 	.Address({24'b0,ALUResult_wire[10:2]}),
 	.MemWrite(MemWrite_wire),
 	.MemRead(MemRead_wire), 
