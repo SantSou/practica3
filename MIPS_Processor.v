@@ -310,7 +310,7 @@ EXMEM
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(71)
+	.N(66)
 )
 MEMWB
 (
@@ -319,14 +319,14 @@ MEMWB
 	.enable(1'b1),
 	.DataInput({RAM_OUT_wire,					//32
 					EXMEM_ALU_or_LUI_wire,		//32
-					EXMEM_WriteRegister_wire,	//5
+					//EXMEM_WriteRegister_wire,	//5
 					EXMEM_MemtoReg_wire,			//1
 					EXMEM_RegWrite_wire}),		//1
 														//---71 bits
 					
 	.DataOutput({MEMWB_RAM_OUT_wire,			//32
 					MEMWB_ALU_or_LUI_wire,		//32
-					MEMWB_WriteRegister_wire,	//5
+					//MEMWB_WriteRegister_wire,	//5
 					MEMWB_MemtoReg_wire,			//1
 					MEMWB_RegWrite_wire})		//1
 );														//---71 bits
@@ -366,7 +366,7 @@ MUX_ForRTypeAndIType
 	.Selector(IDEX_RegDst_wire),
 	.MUX_Data0(IDEX_Instruction_wire[20:16]),
 	.MUX_Data1(IDEX_Instruction_wire[15:11]),
-	.MUX_Output(MEMWB_WriteRegister_wire)
+	.MUX_Output(WriteRegister_wire)
 );
 
 RegisterFile
@@ -398,7 +398,7 @@ Multiplexer2to1
 MUX_ForReadDataAndInmediate
 (
 	.Selector(IDEX_ALUSrc_wire),
-	.MUX_Data0(IDEX_ReadData2_wire), //pipemod
+	.MUX_Data0(IDEX_ReadData2), //pipemod
 	.MUX_Data1(IDEX_InmmediateExtend_wire),//pipemod
 	.MUX_Output(ReadData2OrInmmediate_wire)
 );
