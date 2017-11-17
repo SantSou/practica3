@@ -53,7 +53,7 @@ wire ALUSrc_wire;
 wire RegWrite_wire;
 wire Zero_wire;
 wire Lui_selec;
-wire branch_output;
+//wire branch_output;
 wire branch;
 
 wire jump_wire;
@@ -99,8 +99,8 @@ wire [31:0] IFID_Instruction_wire;
 //IDEX
 wire [31:0] IDEX_Instruction_wire;
 wire [31:0] IDEX_PC_4_wire;
-wire [31:0] IDEX_ReadData1;
-wire [31:0] IDEX_ReadData2;
+wire [31:0] IDEX_ReadData1_wire;
+wire [31:0] IDEX_ReadData2_wire;
 //wire [31:0] IDEX_InmmediateExtend_wire;
 wire [31:0] IDEX_LuiWire;
 wire [9:0] 	IDEX_Rd_Rt;
@@ -131,6 +131,10 @@ wire EXMEM_MemtoReg_wire;
 wire EXMEM_MemWrite_wire;
 wire EXMEM_RegWrite_wire;
 wire EXMEM_branch_output;
+wire EXMEM_BranchNE_wire;
+wire EXMEM_BranchEQ_wire;
+wire EXMEM_jump_wire;
+wire EXMEM_jal_wire;
 
 //MEMWB
 wire [31:0] MEMWB_ALU_or_LUI_wire;
@@ -201,10 +205,10 @@ Address_plus_PC
 Brancher
 branch_control
 (
-	.Rt(IDEX_ReadData1_wire),//Rs pipemod
-	.Rs(IDEX_ReadData2_wire),//Rt pipemod
-	.BEQ(IDEX_BranchEQ_wire),
-	.BNE(IDEX_BranchNE_wire),
+	.Rt(EXMEM_ReadData1_wire),//Rs pipemod
+	.Rs(EXMEM_ReadData2_wire),//Rt pipemod
+	.BEQ(EXMEM_BranchEQ_wire),
+	.BNE(EXMEM_BranchNE_wire),
 	.branch(branch_output)
 );
 
@@ -214,9 +218,9 @@ Multiplexer4to1
 )
 PC_mux(
 	.Selector({jump_or_jr_wire,branch_or_jr_wire}),
-	.MUX_Data0(IDEX_PC_4_wire),
-	.MUX_Data1(BranchPC_wire), //pipemod
-	.MUX_Data2({IDEX_PC_4_wire[31:28],EXMEM_Instruction_wire[25:0],2'b00}), //jumpaddr
+	.MUX_Data0(EXMEM_PC_4_wire),
+	.MUX_Data1(EXMEM_BranchPC_wire), //pipemod
+	.MUX_Data2({EXMEM_PC_4_wire[31:28],EXMEM_Instruction_wire[25:0],2'b00}), //jumpaddr
 	.MUX_Data3(EXMEM_ReadData1_wire),//Rs	pipemod
 	.MUX_Output(PC_result_wire)
 );
@@ -269,8 +273,8 @@ IDEX
 	
 	.DataOutput({IDEX_Instruction_wire,			//32
 					IDEX_PC_4_wire,					//32
-					IDEX_ReadData1,					//32
-					IDEX_ReadData2,					//32
+					IDEX_ReadData1_wire,					//32
+					IDEX_ReadData2_wire,					//32
 					//IDEX_InmmediateExtend_wire,	//32
 					IDEX_LuiWire,						//32
 					IDEX_BranchNE_wire,
@@ -292,7 +296,7 @@ IDEX
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(203)
+	.N(205)
 )
 EXMEM
 (
@@ -303,11 +307,14 @@ EXMEM
 					IDEX_PC_4_wire,				//32
 					BranchPC_wire,					//32
 					ALU_or_LUI_wire,				//32
-					IDEX_ReadData1,				//32
-					IDEX_ReadData2,				//32
+					IDEX_ReadData1_wire,				//32
+					IDEX_ReadData2_wire,				//32
 					WriteRegister_wire,			//5
-					IDEX_jump_wire
-					branch_output,					//1
+					IDEX_BranchNE_wire,
+					IDEX_BranchEQ_wire,
+					IDEX_jump_wire,
+					IDEX_jal_wire,
+					//branch_output,					//1
 					IDEX_MemRead_wire,			//1
 					IDEX_MemtoReg_wire,			//1
 					IDEX_MemWrite_wire,			//1
@@ -318,11 +325,14 @@ EXMEM
 					EXMEM_PC_4_wire,				//32
 					EXMEM_BranchPC_wire,			//32
 					EXMEM_ALU_or_LUI_wire,		//32
-					EXMEM_ReadData1,				//32
-					EXMEM_ReadData2,				//32
+					EXMEM_ReadData1_wire,				//32
+					EXMEM_ReadData2_wire,				//32
 					EXMEM_WriteRegister_wire,	//5
-					EXMEM_jump_wire
-					EXMEM_branch_output,			//1
+					EXMEM_BranchNE_wire,
+					EXMEM_BranchEQ_wire,
+					EXMEM_jump_wire,
+					EXMEM_jal_wire,
+					//EXMEM_branch_output,			//1
 					EXMEM_MemRead_wire,			//1
 					EXMEM_MemtoReg_wire,			//1
 					EXMEM_MemWrite_wire,			//1
@@ -424,7 +434,7 @@ Multiplexer2to1
 MUX_ForReadDataAndInmediate
 (
 	.Selector(IDEX_ALUSrc_wire),
-	.MUX_Data0(IDEX_ReadData2), //pipemod
+	.MUX_Data0(IDEX_ReadData2_wire), //pipemod
 	.MUX_Data1(IDEX_InmmediateExtend_wire),//pipemod
 	.MUX_Output(ReadData2OrInmmediate_wire)
 );
