@@ -56,7 +56,7 @@ localparam SW = 4'b1100;
 		  RSHIFT:
 			ALUResult=B>>shamt;
 		default:
-			ALUResult= 32'hFFFF;
+			ALUResult= 0;
 		endcase // case(control)
 		Zero = (ALUResult==0) ? 1'b1 : 1'b0;
      end // always @ (A or B or control)

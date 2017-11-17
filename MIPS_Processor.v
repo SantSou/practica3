@@ -101,7 +101,8 @@ wire [31:0] IDEX_Instruction_wire;
 wire [31:0] IDEX_PC_4_wire;
 wire [31:0] IDEX_ReadData1;
 wire [31:0] IDEX_ReadData2;
-wire [31:0] IDEX_InmmediateExtend_wire;
+//wire [31:0] IDEX_InmmediateExtend_wire;
+wire [31:0] IDEX_LuiWire;
 wire [9:0] 	IDEX_Rd_Rt;
 wire [2:0]	IDEX_ALUOp_wire;
 
@@ -111,6 +112,11 @@ wire IDEX_MemRead_wire;
 wire IDEX_MemtoReg_wire;
 wire IDEX_MemWrite_wire;
 wire IDEX_RegWrite_wire;
+wire IDEX_Lui_selec;
+wire IDEX_BranchNE_wire,
+wire IDEX_BranchEQ_wire,
+wire IDEX_jump_wire,
+wire IDEX_jal_wire,
 
 //EXMEM
 wire [31:0] EXMEM_Instruction_wire;
@@ -124,10 +130,12 @@ wire EXMEM_MemRead_wire;
 wire EXMEM_MemtoReg_wire;
 wire EXMEM_MemWrite_wire;
 wire EXMEM_RegWrite_wire;
+wire EXMEM_branch_output;
 
 //MEMWB
 wire [31:0] MEMWB_ALU_or_LUI_wire;
 wire [31:0] MEMWB_RAM_OUT_wire;
+wire [31:0] MEMWB_PC_4_wire;
 wire [4:0] 	MEMWB_WriteRegister_wire;
 wire MEMWB_MemtoReg_wire;
 wire MEMWB_RegWrite_wire;
@@ -140,13 +148,13 @@ ControlUnit
 (
 	.OP(IFID_Instruction_wire[31:26]),
 	.RegDst(RegDst_wire),//
-	.BranchNE(BranchNE_wire),
-	.BranchEQ(BranchEQ_wire),
+	.BranchNE(BranchNE_wire),//this
+	.BranchEQ(BranchEQ_wire),//this
 	.ALUOp(ALUOp_wire),//
 	.ALUSrc(ALUSrc_wire),//
-	.lui(Lui_selec),
-	.jump(jump_wire),
-	.jal(jal_wire),
+	.lui(Lui_selec),//
+	.jump(jump_wire),//this
+	.jal(jal_wire),//this
 	.MemRead(MemRead_wire),//
 	.MemtoReg(MemtoReg_wire),//
 	.MemWrite(MemWrite_wire),//
@@ -185,18 +193,18 @@ PC_Puls_4
 Adder32bits
 Address_plus_PC
 (
-	.Data0(PC_4_wire),
-	.Data1({{14{Instruction_wire[15]}},Instruction_wire[15:0],2'b00}),
+	.Data0(IDEX_PC_4_wire),
+	.Data1({{14{IDEX_Instruction_wire[15]}},IDEX_Instruction_wire[15:0],2'b00}),
 	.Result(BranchPC_wire)
 );
 
 Brancher
 branch_control
 (
-	.Rt(ReadData1_wire),//Rs pipemod
-	.Rs(ReadData2_wire),//Rt pipemod
-	.BEQ(BranchEQ_wire),
-	.BNE(BranchNE_wire),
+	.Rt(IDEX_ReadData1_wire),//Rs pipemod
+	.Rs(IDEX_ReadData2_wire),//Rt pipemod
+	.BEQ(IDEX_BranchEQ_wire),
+	.BNE(IDEX_BranchNE_wire),
 	.branch(branch_output)
 );
 
@@ -206,9 +214,9 @@ Multiplexer4to1
 )
 PC_mux(
 	.Selector({jump_or_jr_wire,branch_or_jr_wire}),
-	.MUX_Data0(PC_4_wire),
-	.MUX_Data1(EXMEM_BranchPC_wire), //pipemod
-	.MUX_Data2({EXMEM_PC_4_wire[31:28],EXMEM_Instruction_wire[25:0],2'b00}), //jumpaddr
+	.MUX_Data0(IDEX_PC_4_wire),
+	.MUX_Data1(BranchPC_wire), //pipemod
+	.MUX_Data2({IDEX_PC_4_wire[31:28],EXMEM_Instruction_wire[25:0],2'b00}), //jumpaddr
 	.MUX_Data3(EXMEM_ReadData1_wire),//Rs	pipemod
 	.MUX_Output(PC_result_wire)
 );
@@ -232,7 +240,7 @@ IFID
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(169)
+	.N(174)
 )
 IDEX
 (
@@ -243,36 +251,48 @@ IDEX
 					IFID_PC_4_wire,			//32
 					ReadData1_wire,			//32
 					ReadData2_wire,			//32
-					InmmediateExtend_wire,	//32
+					//InmmediateExtend_wire,	//32
+					LuiWire,						//32
+					BranchNE_wire,
+					BranchEQ_wire,
+					jump_wire,
+					jal_wire,
 					RegDst_wire,				//1
+					Lui_selec,					//1
 					ALUOp_wire,					//3
 					ALUSrc_wire,				//1
 					MemRead_wire,				//1
 					MemtoReg_wire,				//1
 					MemWrite_wire,				//1
-					RegWrite_wire}),			//1
-													//---169 bits
+					RegWrite_wire,}),			//1
+													//---202 bits
 	
 	.DataOutput({IDEX_Instruction_wire,			//32
 					IDEX_PC_4_wire,					//32
 					IDEX_ReadData1,					//32
 					IDEX_ReadData2,					//32
-					IDEX_InmmediateExtend_wire,	//32
+					//IDEX_InmmediateExtend_wire,	//32
+					IDEX_LuiWire,						//32
+					IDEX_BranchNE_wire,
+					IDEX_BranchEQ_wire,
+					IDEX_jump_wire,
+					IDEX_jal_wire,
 					IDEX_RegDst_wire,					//1
+					IDEX_Lui_selec,					//1
 					IDEX_ALUOp_wire,					//3
 					IDEX_ALUSrc_wire,					//1
 					IDEX_MemRead_wire,				//1
 					IDEX_MemtoReg_wire,				//1
 					IDEX_MemWrite_wire,				//1
 					IDEX_RegWrite_wire})				//1
-															//---169 bits
+															//---202 bits
 );
 //******************************************++++++PIPELINE
 
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(201)
+	.N(203)
 )
 EXMEM
 (
@@ -286,6 +306,8 @@ EXMEM
 					IDEX_ReadData1,				//32
 					IDEX_ReadData2,				//32
 					WriteRegister_wire,			//5
+					IDEX_jump_wire
+					branch_output,					//1
 					IDEX_MemRead_wire,			//1
 					IDEX_MemtoReg_wire,			//1
 					IDEX_MemWrite_wire,			//1
@@ -299,6 +321,8 @@ EXMEM
 					EXMEM_ReadData1,				//32
 					EXMEM_ReadData2,				//32
 					EXMEM_WriteRegister_wire,	//5
+					EXMEM_jump_wire
+					EXMEM_branch_output,			//1
 					EXMEM_MemRead_wire,			//1
 					EXMEM_MemtoReg_wire,			//1
 					EXMEM_MemWrite_wire,			//1
@@ -310,7 +334,7 @@ EXMEM
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(66)
+	.N(130)
 )
 MEMWB
 (
@@ -319,17 +343,19 @@ MEMWB
 	.enable(1'b1),
 	.DataInput({RAM_OUT_wire,					//32
 					EXMEM_ALU_or_LUI_wire,		//32
-					//EXMEM_WriteRegister_wire,	//5
+					EXMEM_PC_4_wire,				//32
+					EXMEM_WriteRegister_wire,	//32
 					EXMEM_MemtoReg_wire,			//1
 					EXMEM_RegWrite_wire}),		//1
-														//---71 bits
+														//---130 bits
 					
 	.DataOutput({MEMWB_RAM_OUT_wire,			//32
 					MEMWB_ALU_or_LUI_wire,		//32
-					//MEMWB_WriteRegister_wire,	//5
+					MEMWB_PC_4_wire,				//32
+					MEMWB_WriteRegister_wire	//32
 					MEMWB_MemtoReg_wire,			//1
 					MEMWB_RegWrite_wire})		//1
-);														//---71 bits
+);														//---130 bits
 //******************************************++++++PIPELINE
 
 //******************************************************************/
@@ -338,9 +364,9 @@ Multiplexer2to1
 	.NBits(32)
 )
 JALMux_data(
-	.Selector(jal_wire),
+	.Selector(jal_wire),//modpls
 	.MUX_Data0(RAM_or_LUI_wire),
-	.MUX_Data1(IFID_PC_4_wire),
+	.MUX_Data1(MEMWB_PC_4_wire), 
 	.MUX_Output(Write2Register_wire)
 );
 //*****************************MUX to write PC+4 to Register
@@ -349,8 +375,8 @@ Multiplexer2to1
 	.NBits(5)
 )
 JALMux(
-	.Selector(jal_wire),
-	.MUX_Data0(WriteRegister_wire),
+	.Selector(MEMWB_jal_wire),//modpls
+	.MUX_Data0(MEMWB_WriteRegister_wire), //modpls
 	.MUX_Data1(5'b11111),
 	.MUX_Output(AddressRegister_wire)
 );
@@ -429,9 +455,9 @@ Multiplexer2to1
 	.NBits(32)
 )
 luiMux(
-	.Selector(Lui_selec),
+	.Selector(IDEX_Lui_selec),
 	.MUX_Data0(ALUResult_wire),
-	.MUX_Data1(LuiWire),
+	.MUX_Data1(IDEX_LuiWire), 
 	.MUX_Output(ALU_or_LUI_wire)
 );
 
@@ -473,7 +499,7 @@ RAM_Mux(
 assign ALUResultOut = ALUResult_wire;
 
 //assign for mux selector to PC
-assign branch_or_jr_wire = branch_output | jr_wire;
-assign jump_or_jr_wire = jump_wire | jr_wire;
+assign branch_or_jr_wire = EXMEM_branch_output | jr_wire;
+assign jump_or_jr_wire = EXMEM_jump_wire | jr_wire;
 
 endmodule
