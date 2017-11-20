@@ -271,7 +271,7 @@ IDEX
 					MemRead_wire,				//1
 					MemtoReg_wire,				//1
 					MemWrite_wire,				//1
-					RegWrite_wire,}),			//1
+					RegWrite_wire}),			//1
 													//---206 bits
 	
 	.DataOutput({IDEX_Instruction_wire,			//32
@@ -349,7 +349,7 @@ EXMEM
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(131)
+	.N(104)
 )
 MEMWB
 (
@@ -359,20 +359,20 @@ MEMWB
 	.DataInput({RAM_OUT_wire,					//32
 					EXMEM_ALU_or_LUI_wire,		//32
 					EXMEM_PC_4_wire,				//32
-					EXMEM_WriteRegister_wire,	//32
+					EXMEM_WriteRegister_wire,	//5
 					EXMEM_jal_wire,				//1
 					EXMEM_MemtoReg_wire,			//1
 					EXMEM_RegWrite_wire}),		//1
-														//---131 bits
+														//---104 bits
 					
 	.DataOutput({MEMWB_RAM_OUT_wire,			//32
 					MEMWB_ALU_or_LUI_wire,		//32
 					MEMWB_PC_4_wire,				//32
-					MEMWB_WriteRegister_wire,	//32
+					MEMWB_WriteRegister_wire,	//5
 					MEMWB_jal_wire,				//1
 					MEMWB_MemtoReg_wire,			//1
 					MEMWB_RegWrite_wire})		//1
-);														//---131 bits
+);														//---104 bits
 //******************************************++++++PIPELINE
 
 //******************************************************************/
