@@ -221,7 +221,7 @@ Multiplexer4to1
 )
 PC_mux(
 	.Selector({jump_or_jr_wire,branch_or_jr_wire}),
-	.MUX_Data0(EXMEM_PC_4_wire),
+	.MUX_Data0(PC_4_wire),
 	.MUX_Data1(EXMEM_BranchPC_wire), //pipemod
 	.MUX_Data2({EXMEM_PC_4_wire[31:28],EXMEM_Instruction_wire[25:0],2'b00}), //jumpaddr
 	.MUX_Data3(EXMEM_ReadData1_wire),//Rs	pipemod
