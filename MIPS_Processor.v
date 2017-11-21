@@ -516,7 +516,7 @@ DataMemory
 	.MEMORY_DEPTH(MEMORY_DEPTH)
 )
 RAM(
-	.WriteData(EXMEM_ALU_inputB_wire), //pipemod
+	.WriteData(EXMEM_ReadData2_wire), //changed from EXMEM_ALU_inputB_wire, sw now works
 	.Address({23'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
 	.MemWrite(EXMEM_MemWrite_wire),
 	.MemRead(EXMEM_MemRead_wire), 
