@@ -123,8 +123,8 @@ wire [31:0] EXMEM_Instruction_wire;
 wire [31:0] EXMEM_PC_4_wire;
 wire [31:0] EXMEM_BranchPC_wire;
 wire [31:0] EXMEM_ALU_or_LUI_wire;
-wire [31:0] EXMEM_ReadData2;
-wire [31:0] EXMEM_ReadData1;
+wire [31:0] EXMEM_ReadData2_wire;
+wire [31:0] EXMEM_ReadData1_wire;
 wire [31:0] EXMEM_ALUResult_wire;
 wire [4:0] 	EXMEM_WriteRegister_wire;
 wire EXMEM_MemRead_wire;
@@ -492,7 +492,7 @@ DataMemory
 	.MEMORY_DEPTH(MEMORY_DEPTH)
 )
 RAM(
-	.WriteData(EXMEM_ReadData2), //pipemod
+	.WriteData(EXMEM_ReadData2_wire), //pipemod
 	.Address({24'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
 	.MemWrite(EXMEM_MemWrite_wire),
 	.MemRead(EXMEM_MemRead_wire), 
