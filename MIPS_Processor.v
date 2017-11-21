@@ -53,8 +53,8 @@ wire ALUSrc_wire;
 wire RegWrite_wire;
 wire Zero_wire;
 wire Lui_selec;
-//wire branch_output;
-wire branch;
+wire branch_output;
+//wire branch;
 
 wire jump_wire;
 wire jr_wire;
@@ -495,7 +495,7 @@ DataMemory
 )
 RAM(
 	.WriteData(EXMEM_ReadData2_wire), //pipemod
-	.Address({24'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
+	.Address({23'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
 	.MemWrite(EXMEM_MemWrite_wire),
 	.MemRead(EXMEM_MemRead_wire), 
 	.clk(clk),
