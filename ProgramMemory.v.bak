@@ -32,7 +32,7 @@ assign RealAddress = {16'b0,Address[(DATA_WIDTH-15):2]};
 
 	initial
 	begin				
-		$readmemh("/home/kanta/MIPSProjects/MIPSProcessor_v4/Sources/text.dat", rom);
+		$readmemh("D:/Documentos/ITESO/Quartus/pract3/text.dat", rom);
 	end
 
 	always @ (RealAddress)
