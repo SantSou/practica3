@@ -299,7 +299,7 @@ IDEX
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(238)
+	.N(239)
 )
 EXMEM
 (
@@ -315,6 +315,7 @@ EXMEM
 					ALUResult_wire,				//32
 					WriteRegister_wire,			//5
 					jr_wire,							//1
+					branch_output,					//1
 					IDEX_BranchNE_wire,			//1
 					IDEX_BranchEQ_wire,			//1
 					IDEX_jump_wire,				//1
@@ -323,7 +324,7 @@ EXMEM
 					IDEX_MemtoReg_wire,			//1
 					IDEX_MemWrite_wire,			//1
 					IDEX_RegWrite_wire}),		//1
-														//---238 bits
+														//---239 bits
 														
 	.DataOutput({EXMEM_Instruction_wire,	//32
 					EXMEM_PC_4_wire,				//32
@@ -334,6 +335,7 @@ EXMEM
 					EXMEM_ALUResult_wire,		//32
 					EXMEM_WriteRegister_wire,	//5
 					EXMEM_jr_wire,					//1
+					EXMEM_branch_output,			//1
 					EXMEM_BranchNE_wire,			//1
 					EXMEM_BranchEQ_wire,			//1
 					EXMEM_jump_wire,				//1
@@ -342,7 +344,7 @@ EXMEM
 					EXMEM_MemtoReg_wire,			//1
 					EXMEM_MemWrite_wire,			//1
 					EXMEM_RegWrite_wire})		//1
-														//---238 bits
+														//---239 bits
 );
 //******************************************++++++PIPELINE
 
@@ -519,4 +521,4 @@ assign ALUResultOut = ALUResult_wire;
 assign branch_or_jr_wire = EXMEM_branch_output | EXMEM_jr_wire;
 assign jump_or_jr_wire = EXMEM_jump_wire | EXMEM_jr_wire;
 
-endmodule
+endmodule 
