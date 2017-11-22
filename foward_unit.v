@@ -11,7 +11,8 @@ module Foward_Unit
 	input IDEX_RegDst,
 	input IDEX_MemWrite,
 	output reg [1:0] FowardA,
-	output reg [1:0] FowardB
+	output reg [1:0] FowardB,
+	output reg [1:0] RAM_data_selec
 );
 
 	always@(*) 
@@ -33,6 +34,13 @@ module Foward_Unit
 					
 			if (MEMWB_RegWrite && (MEMWB_WR !=0) && (EXMEM_WR != IDEX_Rt) && (MEMWB_WR == IDEX_Rt) && IDEX_RegDst)
 					FowardB = 2'b01;
+				
+			//condiciones para sw	
+			if (EXMEM_WR !=0 && EXMEM_WR == IDEX_Rt)
+					RAM_data_selec = 2'b10;
+					
+			if (MEMWB_WR !=0 && EXMEM_WR != IDEX_Rt && MEMWB_WR == IDEX_Rt)
+					RAM_data_selec = 2'b01;
 		
 	end
 

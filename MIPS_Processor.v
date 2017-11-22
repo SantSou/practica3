@@ -65,6 +65,7 @@ wire branch_or_jr_wire;
 wire MemRead_wire;
 wire MemtoReg_wire;
 wire MemWrite_wire;
+wire [1:0]RAM_data_selec_wire;
 
 wire [2:0] ALUOp_wire;
 wire [3:0] ALUOperation_wire;
@@ -567,7 +568,8 @@ foward
 	.IDEX_RegDst(IDEX_RegDst_wire),
 	.IDEX_MemWrite(IDEX_MemWrite_wire),
 	.FowardA(FowardA_wire),
-	.FowardB(FowardB_wire)
+	.FowardB(FowardB_wire),
+	.RAM_data_selec(RAM_data_selec_wire)
 );
 
 
@@ -602,7 +604,7 @@ Multiplexer3to1
 )
 MUX_RamData
 (
-	 .Selector({~FowardB_wire[1],FowardB_wire[0]}),
+	 .Selector(RAM_data_selec_wire),
 	 .MUX_Data0(EXMEM_ALU_or_LUI_wire), //IDEX_ReadData2_wire
 	 .MUX_Data1(Write2Register_wire),
 	 .MUX_Data2(IDEX_ReadData2_wire), //EXMEM_ALU_or_LUI_wire
