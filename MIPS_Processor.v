@@ -626,7 +626,7 @@ HDU
 
 Multiplexer2to1
 #(
-	.NBits(32)
+	.NBits(14)
 )
 Control_nop
 (
