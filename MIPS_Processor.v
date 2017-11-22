@@ -1,4 +1,4 @@
-/******************************************************************
+/****************************************************************
 * Description
 *	This is the top-level of a MIPS processor that can execute the next set of instructions:
 *		add
@@ -88,7 +88,7 @@ wire [31:0] ALUResult_wire;
 wire [31:0] PC_4_wire;
 wire [31:0] InmmediateExtendAnded_wire;
 wire [31:0] PCtoBranch_wire;
-wire [31:0] LuiWire;		//extended inmediat input
+wire [31:0] LuiWire;				//extended inmediat input
 wire [31:0] ALU_or_LUI_wire;	//output from luiMux
 wire [31:0] BranchPC_wire;
 wire [31:0] PC_result_wire;
@@ -156,19 +156,18 @@ wire [4:0] 	MEMWB_WriteRegister_wire;
 wire MEMWB_MemtoReg_wire;
 wire MEMWB_RegWrite_wire;
 wire MEMWB_jal_wire;
+
 //*********************************
 wire [1:0] FowardA_wire;
 wire [1:0] FowardB_wire;
 wire [31:0] ALU_inputA_wire;
 wire [31:0] ALU_inputB_wire;
-
 //HDU
 wire IFID_write_wire;
 wire PC_write_wire;
 wire Control_nop_wire;
 
 //*********************************************
-
 integer ALUStatus;
 
 //******************************************************************/
@@ -176,18 +175,18 @@ Control
 ControlUnit
 (
 	.OP(IFID_Instruction_wire[31:26]),
-	.RegDst(RegDst_wire),//
-	.BranchNE(BranchNE_wire),//this
-	.BranchEQ(BranchEQ_wire),//this
-	.ALUOp(ALUOp_wire),//
-	.ALUSrc(ALUSrc_wire),//
-	.lui(Lui_selec),//
-	.jump(jump_wire),//this
-	.jal(jal_wire),//this
-	.MemRead(MemRead_wire),//
-	.MemtoReg(MemtoReg_wire),//
-	.MemWrite(MemWrite_wire),//
-	.RegWrite(RegWrite_wire)//
+	.RegDst(RegDst_wire),
+	.BranchNE(BranchNE_wire),
+	.BranchEQ(BranchEQ_wire),
+	.ALUOp(ALUOp_wire),
+	.ALUSrc(ALUSrc_wire),
+	.lui(Lui_selec),
+	.jump(jump_wire),
+	.jal(jal_wire),
+	.MemRead(MemRead_wire),
+	.MemtoReg(MemtoReg_wire),
+	.MemWrite(MemWrite_wire),
+	.RegWrite(RegWrite_wire)
 );
 
 PC_Register
@@ -231,8 +230,8 @@ Address_plus_PC
 Brancher
 branch_control
 (
-	.Rt(EXMEM_ReadData2_wire),//Rs pipemod
-	.Rs(EXMEM_ReadData1_wire),//Rt pipemod
+	.Rt(EXMEM_ReadData2_wire),//Rs
+	.Rs(EXMEM_ReadData1_wire),//Rt
 	.BEQ(EXMEM_BranchEQ_wire),
 	.BNE(EXMEM_BranchNE_wire),
 	.branch(branch_output)
@@ -245,9 +244,9 @@ Multiplexer4to1
 PC_mux(
 	.Selector({jump_or_jr_wire,branch_or_jr_wire}),
 	.MUX_Data0(PC_4_wire),
-	.MUX_Data1(EXMEM_BranchPC_wire), //pipemod
+	.MUX_Data1(EXMEM_BranchPC_wire),
 	.MUX_Data2({EXMEM_PC_4_wire[31:28],EXMEM_Instruction_wire[25:0],2'b00}), //jumpaddr
-	.MUX_Data3(EXMEM_ReadData1_wire),//Rs	pipemod
+	.MUX_Data3(EXMEM_ReadData1_wire),//Rs
 	.MUX_Output(PC_result_wire)
 );
 //******************************************************************/
@@ -407,7 +406,7 @@ Multiplexer2to1
 	.NBits(32)
 )
 JALMux_data(
-	.Selector(MEMWB_jal_wire),//modpls
+	.Selector(MEMWB_jal_wire),
 	.MUX_Data0(RAM_or_LUI_wire),
 	.MUX_Data1(MEMWB_PC_4_wire), 
 	.MUX_Output(Write2Register_wire)
@@ -418,8 +417,8 @@ Multiplexer2to1
 	.NBits(5)
 )
 JALMux(
-	.Selector(MEMWB_jal_wire),//modpls
-	.MUX_Data0(MEMWB_WriteRegister_wire), //modpls
+	.Selector(MEMWB_jal_wire),
+	.MUX_Data0(MEMWB_WriteRegister_wire),
 	.MUX_Data1(5'b11111),
 	.MUX_Output(AddressRegister_wire)
 );
@@ -467,11 +466,10 @@ Multiplexer2to1
 MUX_ForReadDataAndInmediate
 (
 	.Selector(IDEX_ALUSrc_wire),
-	.MUX_Data0(IDEX_ReadData2_wire), //pipemod
-	.MUX_Data1(IDEX_InmmediateExtend_wire),//pipemod
+	.MUX_Data0(IDEX_ReadData2_wire),
+	.MUX_Data1(IDEX_InmmediateExtend_wire),
 	.MUX_Output(ReadData2OrInmmediate_wire)
 );
-
 
 ALUControl
 ArithmeticLogicUnitControl
@@ -486,21 +484,13 @@ ALU
 ArithmeticLogicUnit 
 (
 	.ALUOperation(ALUOperation_wire),
-	.A(ALU_inputA_wire),//
-	.B(ALU_inputB_wire),											//NO OLVIDAR PUENTEAR A EXMEM PARA RAM
+	.A(ALU_inputA_wire),
+	.B(ALU_inputB_wire),	
 	.Zero(Zero_wire),
 	.shamt(IDEX_Instruction_wire[10:6]),
 	.ALUResult(ALUResult_wire)	
 );
-/*
-	.ALUOperation(ALUOperation_wire),
-	.A(IDEX_ReadData1_wire),//pipemod
-	.B(ReadData2OrInmmediate_wire),
-	.Zero(Zero_wire),
-	.shamt(IDEX_Instruction_wire[10:6]),
-	.ALUResult(ALUResult_wire)
-*/
-//********************************************LUI CONTROL
+
 Multiplexer2to1
 #(
 	.NBits(32)
@@ -520,7 +510,6 @@ luiModule lui(
 //********************************************RAM CONTROL
 
 DataMemory 
-
 #(	
 	.DATA_WIDTH(32),
 	.MEMORY_DEPTH(MEMORY_DEPTH)
@@ -533,15 +522,6 @@ RAM(
 	.clk(clk),
 	.ReadData(RAM_OUT_wire)
 );
-//*************************************************
-/*	.WriteData(EXMEM_ReadData2_wire), //pipemod
-	.Address({23'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
-	.MemWrite(EXMEM_MemWrite_wire),
-	.MemRead(EXMEM_MemRead_wire), 
-	.clk(clk),
-	.ReadData(RAM_OUT_wire)
-	*/
-//********************RAM module
 
 Multiplexer2to1
 #(
@@ -554,7 +534,6 @@ RAM_Mux(
 	.MUX_Output(RAM_or_LUI_wire)
 );
 //*******************RAM MUX
-//****************************************************************
 //*******************************************************************FOWARDING UNIT
 Foward_Unit
 foward
@@ -571,8 +550,6 @@ foward
 	.FowardB(FowardB_wire),
 	.RAM_data_selec(RAM_data_selec_wire)
 );
-
-
 //*********************FOWARD MUXES
 Multiplexer3to1
 #(
