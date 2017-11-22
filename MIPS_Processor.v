@@ -517,7 +517,7 @@ DataMemory
 	.MEMORY_DEPTH(MEMORY_DEPTH)
 )
 RAM(
-	.WriteData(EXMEM_ReadData2_wire), //changed from EXMEM_ALU_inputB_wire, sw now works
+	.WriteData(EXMEM_ALU_inputB_wire), //changed from EXMEM_ALU_inputB_wire, sw now works
 	.Address({23'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
 	.MemWrite(EXMEM_MemWrite_wire),
 	.MemRead(EXMEM_MemRead_wire), 
@@ -553,10 +553,11 @@ foward
 	.IDEX_Rs(IDEX_Instruction_wire[25:21]),
 	.IDEX_Rt(IDEX_Instruction_wire[20:16]),
 	.EXMEM_WR(EXMEM_WriteRegister_wire),
-	.MEMWB_WR(AddressRegister_wire),
+	.MEMWB_WR(MEMWB_WriteRegister_wire), //changed from AddressRegister_wire
 	.EXMEM_RegWrite(EXMEM_RegWrite_wire),
 	.MEMWB_RegWrite(MEMWB_RegWrite_wire),
 	.IDEX_RegDst(IDEX_RegDst_wire),
+	.IDEX_MemWrite(IDEX_MemWrite_wire),
 	.FowardA(FowardA_wire),
 	.FowardB(FowardB_wire)
 );
@@ -571,7 +572,7 @@ MUX_A(
 	 .Selector(FowardA_wire),
 	 .MUX_Data0(IDEX_ReadData1_wire),
 	 .MUX_Data1(Write2Register_wire),
-	 .MUX_Data2(EXMEM_ALU_or_LUI_wire),
+	 .MUX_Data2(EXMEM_ALU_or_LUI_wire), 
 	 .MUX_Output(ALU_inputA_wire)
 );
 
