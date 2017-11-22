@@ -19,7 +19,6 @@ module PC_Register
 (
 	input clk,
 	input reset,
-	input enable,
 	input  [N-1:0] NewPC,
 	
 	
@@ -31,8 +30,7 @@ always@(negedge reset or posedge clk) begin
 		PCValue <= 32'h0040000;
 		//PCValue <= 0;
 	else	
-		if(enable == 1)
-			PCValue<=NewPC;
+		PCValue<=NewPC;
 end
 
 endmodule
