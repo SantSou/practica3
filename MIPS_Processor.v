@@ -76,7 +76,6 @@ wire [31:0] Write2Register_wire;
 
 wire [31:0] RAM_OUT_wire;
 wire [31:0] RAM_or_LUI_wire;
-wire [31:0] RamData_wire;
 wire [31:0] MUX_PC_wire;
 wire [31:0] PC_wire;
 wire [31:0] Instruction_wire;
@@ -132,7 +131,6 @@ wire [31:0] EXMEM_ALU_or_LUI_wire;
 wire [31:0] EXMEM_ReadData2_wire;
 wire [31:0] EXMEM_ReadData1_wire;
 wire [31:0] EXMEM_ALUResult_wire;
-wire [31:0]	EXMEM_RamData_wire;
 wire [4:0] 	EXMEM_WriteRegister_wire;
 wire EXMEM_MemRead_wire;
 wire EXMEM_MemtoReg_wire;
@@ -311,7 +309,7 @@ IDEX
 //******************************************++++++PIPELINE
 PIPE_Register
 #(
-	.N(303)
+	.N(271)
 )
 EXMEM
 (
@@ -328,7 +326,6 @@ EXMEM
 					
 					ALU_inputB_wire,				//32
 					
-					RamData_wire,					//32
 					
 					WriteRegister_wire,			//5
 					jr_wire,							//1
@@ -352,8 +349,6 @@ EXMEM
 					EXMEM_ALUResult_wire,		//32
 					
 					EXMEM_ALU_inputB_wire,		//32
-					
-					EXMEM_RamData_wire,			//32
 					
 					EXMEM_WriteRegister_wire,	//5
 					EXMEM_jr_wire,					//1
@@ -467,7 +462,7 @@ Multiplexer2to1
 MUX_ForReadDataAndInmediate
 (
 	.Selector(IDEX_ALUSrc_wire),
-	.MUX_Data0(IDEX_ReadData2_wire), //pipemod
+	.MUX_Data0(ALU_inputB_wire), //pipemod
 	.MUX_Data1(IDEX_InmmediateExtend_wire),//pipemod
 	.MUX_Output(ReadData2OrInmmediate_wire)
 );
@@ -487,7 +482,7 @@ ArithmeticLogicUnit
 (
 	.ALUOperation(ALUOperation_wire),
 	.A(ALU_inputA_wire),//
-	.B(ALU_inputB_wire),											//NO OLVIDAR PUENTEAR A EXMEM PARA RAM
+	.B(ReadData2OrInmmediate_wire),											//NO OLVIDAR PUENTEAR A EXMEM PARA RAM
 	.Zero(Zero_wire),
 	.shamt(IDEX_Instruction_wire[10:6]),
 	.ALUResult(ALUResult_wire)	
@@ -526,7 +521,7 @@ DataMemory
 	.MEMORY_DEPTH(MEMORY_DEPTH)
 )
 RAM(
-	.WriteData(EXMEM_RamData_wire), //changed from EXMEM_ALU_inputB_wire, sw now works
+	.WriteData(EXMEM_ALU_inputB_wire), //changed from EXMEM_ALU_inputB_wire, sw now works
 	.Address({23'b0,EXMEM_ALUResult_wire[10:2]}), //pipemod
 	.MemWrite(EXMEM_MemWrite_wire),
 	.MemRead(EXMEM_MemRead_wire), 
@@ -565,11 +560,8 @@ foward
 	.MEMWB_WR(MEMWB_WriteRegister_wire), //changed from AddressRegister_wire
 	.EXMEM_RegWrite(EXMEM_RegWrite_wire),
 	.MEMWB_RegWrite(MEMWB_RegWrite_wire),
-	.IDEX_RegDst(IDEX_RegDst_wire),
-	.IDEX_MemWrite(IDEX_MemWrite_wire),
 	.FowardA(FowardA_wire),
-	.FowardB(FowardB_wire),
-	.RAM_data_selec(RAM_data_selec_wire)
+	.FowardB(FowardB_wire)
 );
 
 
@@ -592,23 +584,10 @@ Multiplexer3to1
 )
 MUX_B(
 	 .Selector(FowardB_wire),
-	 .MUX_Data0(ReadData2OrInmmediate_wire),
+	 .MUX_Data0(IDEX_ReadData2_wire),
 	 .MUX_Data1(Write2Register_wire),
 	 .MUX_Data2(EXMEM_ALU_or_LUI_wire),
 	 .MUX_Output(ALU_inputB_wire)
-);
-
-Multiplexer3to1
-#(
-	.NBits(32)
-)
-MUX_RamData
-(
-	 .Selector(RAM_data_selec_wire),
-	 .MUX_Data0(EXMEM_ALU_or_LUI_wire), //IDEX_ReadData2_wire
-	 .MUX_Data1(Write2Register_wire),
-	 .MUX_Data2(IDEX_ReadData2_wire), //EXMEM_ALU_or_LUI_wire
-	 .MUX_Output(RamData_wire)
 );
 
 
