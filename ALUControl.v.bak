@@ -4,8 +4,8 @@ module ALUControl
 (
 	input [2:0] ALUOp,
 	input [5:0] ALUFunction,
-	output [3:0] ALUOperation
-	//output reg jr
+	output [3:0] ALUOperation,
+	output reg jr
 );
 
 localparam R_Type_AND    = 9'b111_100100;
@@ -55,12 +55,12 @@ always@(Selector)begin
 		I_Type_ANDI:	ALUControlValues = 4'b0000;
 		default: ALUControlValues = 4'b1001;
 	endcase
-	/*
+	
 	if(Selector==R_Type_JR)
 	 	jr = 1'b1;
 	else
 		jr = 1'b0;
-	*/
+	
 end
 
 
