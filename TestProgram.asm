@@ -5,7 +5,14 @@
 #sw $t1, 0($t0)
 #lw $t2, 0($t0)
 #addi $t3, $t2, 1
+jal BRANCH
+addi $t3, $zero, 0xf
+j continue
+BRANCH:
 
+jr $ra
+continue:
+add $t3, $zero, $zero
 addi $t0, $zero, 5
 add $t1, $t0, $zero
 addi $t1, $t1, 2
