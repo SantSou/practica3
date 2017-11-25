@@ -1,12 +1,12 @@
 #Finely crafted by: 
-#	Santiago Soulï¿½
-#	Darï¿½o Hoyo
+#	Santiago Soulé
+#	Darío Hoyo
 .text
 	#<init>
 	lui $sp,0x1001
 	add $sp,$sp, 0x3fc
 	addi $t7, $zero, 1	#Number to compare for base case
-	addi $s0,$zero,3	#number of discs
+	addi $s0,$zero,8	#number of discs
 	add $a0, $zero, $s0	#copy to a0
 	lui $s1,0x1001		#Upper address to fill origin tower
 	lui $a1,0x1001		#Origin tower
@@ -17,9 +17,9 @@
 	addi $a3, $a3, 0x40		
 fill: 
 	sw $a0,0($s1)		#store in address
+	addi $a0, $a0, -1	#sub 1 to disc counter
 	addi $s1, $s1, 4	#move address
 	addi $s2, $s2, 4	#counter for origin tower position
-	addi $a0, $a0, -1	#sub 1 to disc counter
 	bne $a0, $zero, fill	#loop
 	
 	add $a0, $zero, $s0	#return the number of discs to a0
@@ -93,12 +93,13 @@ second:
 	add $s5, $zero, $t0
 	
 	jal hanoi		#call recursive function
+
+	addi $sp, $sp, 20	#POP, only ra is needed
+	lw $ra, 16($sp)
 	
 	add $t0, $zero, $s1	#switch levels dest with aux
 	add $s1, $zero, $s5	
 	add $s5, $zero, $t0
 	
-	addi $sp, $sp, 20	#POP, only ra is needed
-	lw $ra, 16($sp)
 	jr $ra
 exit:
